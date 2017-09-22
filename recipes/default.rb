@@ -24,15 +24,15 @@ end
 if node['sssd']['computer_name'].nil?
   # We must limit the computer name to 15 characters, to avoid truncating:
   #   https://bugs.freedesktop.org/show_bug.cgi?id=69016
-  computer_name = node['fqdn'][0..14]
+  computer_name = node['fqdn'].split('.')[0][0..14]
 else
   computer_name = node['sssd']['computer_name']
 end
 
 case node['platform']
 when 'centos'
-  include_recipe 'yum-epel'
-  include_recipe 'sssd::adcli'
+  include_recipe 'yum-epel' if node['sssd']['add_repos'] || true
+  include_recipe 'sssd::adcli' if node[:platform_version].split('.')[0].to_i < 7
 end
 
 node['sssd']['packages'].each do |pkg|
@@ -67,6 +67,7 @@ if node['sssd']['join_domain'] == true
       adcli join --host-fqdn #{node['fqdn']} \
         --computer-name #{computer_name} \
         -U #{node.run_state['realm_username']} \
+        #{node.run_state.include?('organizational_unit') ? "--domain-ou=#{node.run_state['organizational_unit']}" : ""} \
         #{node['sssd']['directory_name']} \
         --stdin-password
     EOF
