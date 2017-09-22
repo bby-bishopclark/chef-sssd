@@ -30,8 +30,8 @@ fallback_homedir = <%= node['sssd']['basedir']%>/%u
 
 ldap_user_ssh_public_key = sshPublicKey
 
-<% if node.sssd['custom_config'] %>
-<% node.sssd['custom_config'].sort.each do |key, value| %>
+<% if node['sssd'].include?('custom_config') %>
+<% node['sssd']['custom_config'].sort.each do |key, value| %>
 <%= key %>=<%= value %>
 <% end %>
 <% end %>
